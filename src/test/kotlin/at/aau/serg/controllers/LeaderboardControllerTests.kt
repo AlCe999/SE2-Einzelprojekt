@@ -58,4 +58,68 @@ class LeaderboardControllerTests {
         assertEquals(second, body[1])
         assertEquals(third, body[2])
     }
+
+    @Test
+    fun test_getLeaderboard_withValidRank() {
+        val players = (1..10).map { GameResult(it.toLong(), "p$it", 100 - it, 10.0 + it) }
+        whenever(mockedService.getGameResults()).thenReturn(players)
+
+        val res = controller.getLeaderboard(5)
+
+        assertEquals(HttpStatus.OK, res.statusCode)
+        val body = res.body!!
+        assertEquals(7, body.size)
+    }
+
+    @Test
+    fun test_getLeaderboard_withRankAtStart() {
+        val players = (1..10).map { GameResult(it.toLong(), "p$it", 100 - it, 10.0 + it) }
+        whenever(mockedService.getGameResults()).thenReturn(players)
+
+        val res = controller.getLeaderboard(1)
+
+        assertEquals(HttpStatus.OK, res.statusCode)
+        val body = res.body!!
+        assertEquals(4, body.size)
+    }
+
+    @Test
+    fun test_getLeaderboard_withRankAtEnd() {
+        val players = (1..10).map { GameResult(it.toLong(), "p$it", 100 - it, 10.0 + it) }
+        whenever(mockedService.getGameResults()).thenReturn(players)
+
+        val res = controller.getLeaderboard(10)
+
+        assertEquals(HttpStatus.OK, res.statusCode)
+        val body = res.body!!
+        assertEquals(4, body.size)
+    }
+
+    @Test
+    fun test_getLeaderboard_rankNegative_returns400() {
+        whenever(mockedService.getGameResults()).thenReturn(emptyList())
+
+        val res = controller.getLeaderboard(-1)
+
+        assertEquals(HttpStatus.BAD_REQUEST, res.statusCode)
+    }
+
+    @Test
+    fun test_getLeaderboard_rankZero_returns400() {
+        whenever(mockedService.getGameResults()).thenReturn(emptyList())
+
+        val res = controller.getLeaderboard(0)
+
+        assertEquals(HttpStatus.BAD_REQUEST, res.statusCode)
+    }
+
+    @Test
+    fun test_getLeaderboard_rankTooLarge_returns400() {
+        val players = listOf(GameResult(1, "p1", 10, 5.0))
+        whenever(mockedService.getGameResults()).thenReturn(players)
+
+        val res = controller.getLeaderboard(5)
+
+        assertEquals(HttpStatus.BAD_REQUEST, res.statusCode)
+    }
 }
